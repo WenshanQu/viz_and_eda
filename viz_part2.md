@@ -60,6 +60,8 @@ weather_df =
 
 ## start with a familiar one
 
+**scale\_x\_continuous**
+
 ``` r
 weather_df %>% 
   ggplot(aes(x = tmin, y = tmax, color = name)) +
@@ -70,13 +72,13 @@ weather_df %>%
     y = "Maximum daily temp (C)",
     caption = "Data from rnoaa package with three stations"
   ) +
-  scale_x_continuous(
+  scale_x_continuous(  
     breaks = c(-15, 0 ,15),
-    labels = c("-15 C", "0", "15C")
+    labels = c("-15 C", "0", "15C")  ## Position scales for continuous data (x & y)
   ) +
   scale_y_continuous(
     trans = "sqrt",
-    position = "right"
+    position = "right"  ## put the y axis at the right of the picture
   )
 ```
 
@@ -88,7 +90,7 @@ weather_df %>%
 
 ![](viz_part2_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
 
-Color scales
+Color scales **scale\_color\_hue**
 
 ``` r
 weather_df %>% 
@@ -101,15 +103,16 @@ weather_df %>%
     caption = "Data from rnoaa package with three stations"
   ) + 
   scale_color_hue(
-    name = "location",  ## for selected variable?
+    name = "location",  ## you can change the name above `legend` using this function
     h = c(100, 300)
     )
 ```
 
     ## Warning: Removed 15 rows containing missing values (geom_point).
 
-![](viz_part2_files/figure-gfm/unnamed-chunk-4-1.png)<!-- --> Better
-using package viridis!
+![](viz_part2_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
+
+Better using package **viridis**!
 
 ``` r
 library(viridis)
@@ -134,6 +137,26 @@ weather_df %>%
 
 ![](viz_part2_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
 
+``` r
+weather_df %>% 
+  ggplot(aes(x = tmin, y = tmax, color = name)) +
+  geom_point(alpha = .3) +
+  labs(
+    title = "Temperature at three stations",
+    x = "Mininmum daily temp (C)",
+    y = "Maximum daily temp (C)",
+    caption = "Data from rnoaa package with three stations"
+  ) + 
+  viridis::scale_colour_viridis(
+    name = "location",
+    discrete = TRUE ## Generate a discrete palette? (default: FALSE - generate continuous palette).
+  )    
+```
+
+    ## Warning: Removed 15 rows containing missing values (geom_point).
+
+![](viz_part2_files/figure-gfm/unnamed-chunk-5-2.png)<!-- -->
+
 ## Themes
 
 ``` r
@@ -154,8 +177,13 @@ weather_df %>%
 
     ## Warning: Removed 15 rows containing missing values (geom_point).
 
-![](viz_part2_files/figure-gfm/unnamed-chunk-6-1.png)<!-- --> use
-ggthemes package …
+![](viz_part2_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
+
+you can also use `theme_minimal` (preferred), `theme_classic`, and even
+you could use `ggthemes::` package and try various themes contain in
+`ggthemes` package.
+
+use `ggthemes` package …
 
 ``` r
 library(viridis)
@@ -190,14 +218,17 @@ weather_df %>%
   ) + 
   scale_colour_viridis_d() +
   theme_minimal() +
-  theme(legend.position = "bottom")
+  theme(legend.position = "bottom") ## if I want to do `theme_minimal` and change legend position both, I should put the minimal before legend, because minimal will COVER EVERYTHING before it!!
 ```
 
     ## Warning: Removed 15 rows containing missing values (geom_point).
 
 ![](viz_part2_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
 
-which is always put at the beginning of our rmd file to setting things
+## Setting options
+
+which is always put at the very beginning of our rmd file to setting
+things
 
 ``` r
 library(tidyverse)
@@ -219,7 +250,7 @@ scale_colour_discrete = scale_colour_viridis_d
 scale_fill_discrete = scale_fill_viridis_d
 ```
 
-## `data` in geoms
+## `data` in geoms (DATA ARRANGEMENT)
 
 ``` r
 central_park = 
@@ -233,12 +264,16 @@ weather_df %>%
 waikiki %>% 
   ggplot(aes(x = date, y = tmax, color = name)) +
   geom_point() +
-  geom_line(data = central_park)  ## split a data set in two
+  geom_line(data = central_park)  ## split a data set in two by adding a new graph
 ```
 
     ## Warning: Removed 3 rows containing missing values (geom_point).
 
 <img src="viz_part2_files/figure-gfm/unnamed-chunk-10-1.png" width="90%" />
+
+putting `data =` in the `geom` function can using a different data set!
+If you just use `geom_line()` it will still work with `waikiki` data
+set.
 
 ## `patchwork`
 
@@ -277,9 +312,22 @@ ggp_tmax_date =
 
 <img src="viz_part2_files/figure-gfm/unnamed-chunk-11-1.png" width="90%" />
 
-## data manipulation
+## Data Manipulation
 
 quick example on factors
+
+compare two plots, the second one rearrange the name according to the
+tmax value.
+
+``` r
+weather_df %>% 
+  ggplot(aes(x = name, y = tmax)) +
+  geom_boxplot()
+```
+
+    ## Warning: Removed 3 rows containing non-finite values (stat_boxplot).
+
+<img src="viz_part2_files/figure-gfm/unnamed-chunk-12-1.png" width="90%" />
 
 ``` r
 weather_df %>% 
@@ -292,4 +340,58 @@ weather_df %>%
 
     ## Warning: Removed 3 rows containing non-finite values (stat_boxplot).
 
-<img src="viz_part2_files/figure-gfm/unnamed-chunk-12-1.png" width="90%" />
+<img src="viz_part2_files/figure-gfm/unnamed-chunk-12-2.png" width="90%" />
+
+``` r
+weather_df %>% 
+  mutate(
+    name = factor(name), ## change location names from `chr` to `fct` variables.
+    name = forcats::fct_relevel(name, c("Waikiki_HA")) ## will be reached out in the future
+  ) %>% 
+  ggplot(aes(x = name, y = tmax)) +
+  geom_boxplot()
+```
+
+    ## Warning: Removed 3 rows containing non-finite values (stat_boxplot).
+
+<img src="viz_part2_files/figure-gfm/unnamed-chunk-12-3.png" width="90%" />
+
+`fct_reorder()` function
+
+What about tamx and tmin …
+
+``` r
+weather_df %>% 
+  pivot_longer(
+    tmax:tmin,
+    names_to = "obs",
+    values_to = "temperature"
+  ) %>% 
+  ggplot(aes(x = temperature, fill = obs)) +  ## `color = obs` is also ok
+  geom_density(alpha = .3) +
+  facet_grid(. ~ name)
+```
+
+    ## Warning: Removed 18 rows containing non-finite values (stat_density).
+
+<img src="viz_part2_files/figure-gfm/unnamed-chunk-13-1.png" width="90%" />
+
+``` r
+pulse_data = 
+  haven::read_sas("./data/public_pulse_data.sas7bdat") %>%
+  janitor::clean_names() %>%
+  pivot_longer(
+    bdi_score_bl:bdi_score_12m,
+    names_to = "visit",
+    values_to = "bdi",
+    names_prefix = "bdi_score_"
+  ) %>% 
+  mutate(visit = recode(visit, "bl" = "00m"))
+  
+ggplot(pulse_data, aes(x = visit, y = bdi)) + 
+  geom_boxplot()
+```
+
+    ## Warning: Removed 879 rows containing non-finite values (stat_boxplot).
+
+<img src="viz_part2_files/figure-gfm/unnamed-chunk-14-1.png" width="90%" />

@@ -29,6 +29,8 @@ weather_df =
 
 ## start with a familiar one
 
+**scale_x_continuous**
+
 ```{r}
 weather_df %>% 
   ggplot(aes(x = tmin, y = tmax, color = name)) +
@@ -39,18 +41,18 @@ weather_df %>%
     y = "Maximum daily temp (C)",
     caption = "Data from rnoaa package with three stations"
   ) +
-  scale_x_continuous(
+  scale_x_continuous(  
     breaks = c(-15, 0 ,15),
-    labels = c("-15 C", "0", "15C")
+    labels = c("-15 C", "0", "15C")  ## Position scales for continuous data (x & y)
   ) +
   scale_y_continuous(
     trans = "sqrt",
-    position = "right"
+    position = "right"  ## put the y axis at the right of the picture
   )
 
 ```
 
-Color scales
+Color scales  **scale_color_hue**
 
 ```{r}
 weather_df %>% 
@@ -63,11 +65,12 @@ weather_df %>%
     caption = "Data from rnoaa package with three stations"
   ) + 
   scale_color_hue(
-    name = "location",  ## for selected variable?
+    name = "location",  ## you can change the name above `legend` using this function
     h = c(100, 300)
     )
 ```
-Better using package viridis!
+
+Better using package **viridis**!
 ```{r}
 library(viridis)
 weather_df %>% 
@@ -80,7 +83,22 @@ weather_df %>%
     caption = "Data from rnoaa package with three stations"
   ) + 
   scale_colour_viridis_d()
-      
+  
+
+
+weather_df %>% 
+  ggplot(aes(x = tmin, y = tmax, color = name)) +
+  geom_point(alpha = .3) +
+  labs(
+    title = "Temperature at three stations",
+    x = "Mininmum daily temp (C)",
+    y = "Maximum daily temp (C)",
+    caption = "Data from rnoaa package with three stations"
+  ) + 
+  viridis::scale_colour_viridis(
+    name = "location",
+    discrete = TRUE ## Generate a discrete palette? (default: FALSE - generate continuous palette).
+  )    
 ```
 
 
@@ -101,7 +119,10 @@ weather_df %>%
   theme_bw() +   ##change every default things to black and white
   theme(legend.position = "bottom")  ## if we put this above `theme_bw`, it doesn't matters, bcs bw only changes default things!
 ```
-use ggthemes package ...
+
+you can also use `theme_minimal` (preferred), `theme_classic`, and even you could use `ggthemes::` package and try various themes contain in `ggthemes` package.
+
+use `ggthemes` package ...
 ```{r}
 library(viridis)
 weather_df %>% 
@@ -130,10 +151,13 @@ weather_df %>%
   ) + 
   scale_colour_viridis_d() +
   theme_minimal() +
-  theme(legend.position = "bottom")
+  theme(legend.position = "bottom") ## if I want to do `theme_minimal` and change legend position both, I should put the minimal before legend, because minimal will COVER EVERYTHING before it!!
 ```
 
-which is always put at the beginning of our rmd file to setting things
+
+## Setting options
+
+which is always put at the very beginning of our rmd file to setting things
 ```{r}
 library(tidyverse)
 
@@ -155,7 +179,7 @@ scale_fill_discrete = scale_fill_viridis_d
 ```
 
 
-## `data` in geoms
+## `data` in geoms (DATA ARRANGEMENT)
 
 ```{r}
 central_park = 
@@ -169,10 +193,11 @@ weather_df %>%
 waikiki %>% 
   ggplot(aes(x = date, y = tmax, color = name)) +
   geom_point() +
-  geom_line(data = central_park)  ## split a data set in two
+  geom_line(data = central_park)  ## split a data set in two by adding a new graph
 ```
 
-
+putting `data = ` in the `geom` function can using a different data set! 
+If you just use `geom_line()` it will still work with `waikiki` data set.
 
 ## `patchwork`
 
@@ -202,20 +227,34 @@ ggp_tmax_date =
 ```
 
 
-## data manipulation
+## Data Manipulation
 
 quick example on factors
 
+compare two plots, the second one rearrange the name according to the tmax value.
+
 ```{r}
+weather_df %>% 
+  ggplot(aes(x = name, y = tmax)) +
+  geom_boxplot()
+
 weather_df %>% 
   mutate(
     name = fct_reorder(name, tmax) ## arrange factor "name" in the order according to "tmax" value
   ) %>% 
   ggplot(aes(x = name, y = tmax)) +
   geom_boxplot()
+
+weather_df %>% 
+  mutate(
+    name = factor(name), ## change location names from `chr` to `fct` variables.
+    name = forcats::fct_relevel(name, c("Waikiki_HA")) ## will be reached out in the future
+  ) %>% 
+  ggplot(aes(x = name, y = tmax)) +
+  geom_boxplot()
 ```
 
-
+`fct_reorder()` function
 
 What about tamx and tmin ...
 
