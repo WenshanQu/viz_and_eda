@@ -286,3 +286,41 @@ ggplot(pulse_data, aes(x = visit, y = bdi)) +
   geom_boxplot()
 ```
 
+
+in select function, you can use `start_with("pd_)` funtion to quickly select columns with same beginning!
+
+This is a bonus practice!
+
+First we manipulate our data!
+```{r}
+pup_data = 
+  read_csv("./data/FAS_pups.csv", col_types = "ciiiii") %>%
+  janitor::clean_names() %>%
+  mutate(sex = recode(sex, `1` = "male", `2` = "female")) 
+
+litter_data = 
+  read_csv("./data/FAS_litters.csv", col_types = "ccddiiii") %>%
+  janitor::clean_names() %>%
+  separate(group, into = c("dose", "day_of_tx"), sep = 3)
+
+fas_data = left_join(pup_data, litter_data, by = "litter_number") 
+```
+This step shows how to make many useful variables (i.e. the dose, days of treatment, outcomes...) shown clearly and exhaustively!
+```{r}
+fas_data %>% 
+  select(dose, day_of_tx, starts_with("pd_")) %>% 
+  pivot_longer(
+    pd_ears:pd_walk,
+    names_to = "outcome",
+    values_to = "pn_day"
+  ) %>% 
+  drop_na() %>%
+  mutate(outcome = forcats::fct_relevel(outcome, "pd_ears", "pd_pivot", "pd_walk", "pd_eyes")) %>% ## reorder the factors make it better
+  ggplot(aes(x = dose, y = pn_day)) +  ## the y should be pn_days instead of outcome!
+  geom_violin() +
+  facet_grid(day_of_tx ~ outcome) ## we facet the day_of_tx against outcome!
+```
+
+
+```
+
